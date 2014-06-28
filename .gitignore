@@ -1,7 +1,7 @@
 src/*.exe
-src/myriadcoin
-src/myriadcoind
-src/test_myriadcoin
+src/spectrumcoin
+src/spectrumcoind
+src/test_spectrumcoin
 .*.swp
 *.*~*
 *.bak
@@ -9,17 +9,17 @@ src/test_myriadcoin
 *.orig
 *.o
 *.patch
-.myriadcoin
+.spectrumcoin
 
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-myriadcoin-qt
-Myriadcoin-Qt.app
+spectrumcoin-qt
+Spectrumcoin-Qt.app
 
 # Unit-tests
 Makefile.test
-myriadcoin-qt_test
+spectrumcoin-qt_test
 
 # Resources cpp
 qrc_*.cpp
