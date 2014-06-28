@@ -95,6 +95,13 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty_groestl", (double)GetDifficulty(NULL, ALGO_GROESTL)));
     obj.push_back(Pair("difficulty_skein",   (double)GetDifficulty(NULL, ALGO_SKEIN)));
     obj.push_back(Pair("difficulty_qubit",   (double)GetDifficulty(NULL, ALGO_QUBIT)));
+    obj.push_back(Pair("difficulty_x11",     (double)GetDifficulty(NULL, ALGO_X11)));
+    obj.push_back(Pair("difficulty_quark",   (double)GetDifficulty(NULL, ALGO_QUARK)));
+    obj.push_back(Pair("difficulty_groestl2",(double)GetDifficulty(NULL, ALGO_GROESTL2)));
+    obj.push_back(Pair("difficulty_blake256",(double)GetDifficulty(NULL, ALGO_BLAKE256)));
+    obj.push_back(Pair("difficulty_x13",     (double)GetDifficulty(NULL, ALGO_X13)));
+    obj.push_back(Pair("difficulty_scryptn", (double)GetDifficulty(NULL, ALGO_SCRYPTN)));
+    obj.push_back(Pair("difficulty_keccak",  (double)GetDifficulty(NULL, ALGO_KECCAK)));
     obj.push_back(Pair("errors",             GetWarnings("statusbar")));
     obj.push_back(Pair("generate",           GetBoolArg("-gen", false)));
     obj.push_back(Pair("genproclimit",       (int)GetArg("-genproclimit", -1)));
