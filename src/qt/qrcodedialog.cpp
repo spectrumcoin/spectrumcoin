@@ -85,7 +85,7 @@ void QRCodeDialog::genCode()
 
 QString QRCodeDialog::getURI()
 {
-    QString ret = QString("myriadcoin:%1").arg(address);
+    QString ret = QString("spectrumcoin:%1").arg(address);
     int paramCount = 0;
 
     ui->outUri->clear();

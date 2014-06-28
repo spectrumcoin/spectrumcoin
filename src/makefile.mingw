@@ -115,13 +115,18 @@ OBJS= \
     obj/luffa.o \
     obj/simd.o \
     obj/cubehash.o \
-    obj/shavite.o
+    obj/shavite.o \
+    obj/blake256.o \
+    obj/hamsi.o \
+    obj/fugue.o \
+    obj/scryptn.o \
+    obj/scryptn-sse2.o
 
 
-all: myriadcoind.exe
+all: spectrumcoind.exe
 
-test check: test_myriadcoin.exe FORCE
-	test_myriadcoin.exe
+test check: test_spectrumcoin.exe FORCE
+	test_spectrumcoin.exe
 
 #
 # LevelDB support
@@ -138,7 +143,7 @@ obj/%.o: %.cpp $(HEADERS)
 obj/%.o: %.c $(HEADERS)
 	$(CXX) -c $(CFLAGS) -fpermissive -o $@ $<
 
-myriadcoind.exe: $(OBJS:obj/%=obj/%)
+spectrumcoind.exe: $(OBJS:obj/%=obj/%)
 	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -146,11 +151,11 @@ TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 obj-test/%.o: test/%.cpp $(HEADERS)
 	$(CXX) -c $(TESTDEFS) $(CFLAGS) -o $@ $<
 
-test_myriadcoin.exe: $(TESTOBJS) $(filter-out obj/init.o obj/myriadcoind.o,$(OBJS:obj/%=obj/%))
+test_spectrumcoin.exe: $(TESTOBJS) $(filter-out obj/init.o obj/spectrumcoind.o,$(OBJS:obj/%=obj/%))
 	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework$(BOOST_SUFFIX) $(LIBS)
 
 clean:
-	rm -f myriadcoind.exe test_myriadcoin.exe
+	rm -f spectrumcoind.exe test_spectrumcoin.exe
 	rm -f obj/*
 	rm -f obj-test/*
 	cd leveldb && $(MAKE) TARGET_OS=NATIVE_WINDOWS clean && cd ..

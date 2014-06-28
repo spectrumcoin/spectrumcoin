@@ -3,6 +3,7 @@
 // Copyright (c) 2013-2014 The Zetacoin developers
 // Copyright (c) 2014 The Huntercoin developers
 // Copyright (c) 2014 The Myriadcoin developers
+// Copyright (c) 2014 The Spectrumcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -69,7 +70,7 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Myriadcoin Signed Message:\n";
+const string strMessageMagic = "Spectrumcoin Signed Message:\n";
 
 double dHashesPerSec = 0.0;
 int64 nHPSTimerStart = 0;
@@ -1269,35 +1270,41 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
     }
 }
 
-static const int64 nStartSubsidy = 1000 * COIN;
-static const int64 nMinSubsidy = 1 * COIN;
-
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = nStartSubsidy;
+    int64 nSubsidy;
 
-    // Mining phase: Subsidy is cut in half every SubsidyHalvingInterval
-    nSubsidy >>= (nHeight / Params().SubsidyHalvingInterval());
-    
-    // Inflation phase: Subsidy reaches minimum subsidy
-    // Network is rewarded for transaction processing with transaction fees and 
-    // the inflationary subsidy
-    if (nSubsidy < nMinSubsidy)
+    if (nHeight == 0)
     {
         nSubsidy = nMinSubsidy;
+    }
+    else
+    {
+        nSubsidy = nStartSubsidy;
+
+        // Mining phase: Subsidy is cut in half every SubsidyHalvingInterval
+        nSubsidy >>= (nHeight / Params().SubsidyHalvingInterval());
+        
+        // Inflation phase: Subsidy reaches minimum subsidy
+        // Network is rewarded for transaction processing with transaction fees and 
+        // the inflationary subsidy
+        if (nSubsidy < nMinSubsidy)
+        {
+            nSubsidy = nMinSubsidy;
+        }
     }
 
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 150; // 2.5 minutes (NUM_ALGOS * 30 seconds)
-static const int64 nTargetSpacing = 150; // 2.5 minutes (NUM_ALGOS * 30 seconds)
+static const int64 nTargetTimespan = 720; // 12 minutes
+static const int64 nTargetSpacing = 720; // 12 minutes
 static const int64 nInterval = 1; // retargets every blocks
 
-static const int64 nAveragingInterval = 10; // 10 blocks
-static const int64 nAveragingTargetTimespan = nAveragingInterval * nTargetSpacing; // 25 minutes
+static const int64 nAveragingInterval = 6; // 6 blocks
+static const int64 nAveragingTargetTimespan = nAveragingInterval * nTargetSpacing; // 72 minutes
 
-static const int64 nMaxAdjustDown = 4; // 4% adjustment down
+static const int64 nMaxAdjustDown = 5; // 5% adjustment down
 static const int64 nMaxAdjustUp = 2; // 2% adjustment up
 
 static const int64 nTargetTimespanAdjDown = nTargetTimespan * (100 + nMaxAdjustDown) / 100;
@@ -2089,11 +2096,11 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     nBestChainWork = pindexNew->nChainWork;
     nTimeBestReceived = GetTime();
     nTransactionsUpdated++;
-    printf("SetBestChain: new best=%s  height=%d  pow_algo=%d  block_work=%s  log2_work=%.8g  tx=%lu  date=%s progress=%f\n",
+    printf("SetBestChain: new best=%s  height=%d  pow_algo=%d  block_work=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f\n",
       hashBestChain.ToString().c_str(), 
       nBestHeight, 
       pindexNew->GetAlgo(),
-      pindexNew->GetBlockWorkAdjusted().ToString().c_str(),
+      pindexNew->GetBlockWorkAdjusted().GetCompact(),
       log(nBestChainWork.getdouble())/log(2.0), 
       (unsigned long)pindexNew->nChainTx,
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexBest->GetBlockTime()).c_str(),
@@ -4347,6 +4354,27 @@ CBlockTemplate* CreateNewBlock(CReserveKey& reservekey, int algo)
         case ALGO_QUBIT:
             pblock->nVersion |= BLOCK_VERSION_QUBIT;
             break;
+        case ALGO_X11:
+            pblock->nVersion |= BLOCK_VERSION_X11;
+            break;
+        case ALGO_QUARK:
+            pblock->nVersion |= BLOCK_VERSION_QUARK;
+            break;
+        case ALGO_GROESTL2:
+            pblock->nVersion |= BLOCK_VERSION_GROESTL2;
+            break;
+        case ALGO_BLAKE256:
+            pblock->nVersion |= BLOCK_VERSION_BLAKE256;
+            break;
+        case ALGO_X13:
+            pblock->nVersion |= BLOCK_VERSION_X13;
+            break;
+        case ALGO_SCRYPTN:
+            pblock->nVersion |= BLOCK_VERSION_SCRYPTN;
+            break;
+        case ALGO_KECCAK:
+            pblock->nVersion |= BLOCK_VERSION_KECCAK;
+            break;
         default:
             error("CreateNewBlock: bad algo");
             return NULL;
@@ -4668,7 +4696,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     uint256 hashBlock = pblock->GetHash();
 
     //// debug print
-    printf("MyriadcoinMiner:\n");
+    printf("SpectrumcoinMiner:\n");
     printf("proof-of-work found\n  block-hash: %s\n  pow-hash: %s\n  target: %s\n", 
         hashBlock.GetHex().c_str(), 
         hashPoW.GetHex().c_str(), 
@@ -4680,7 +4708,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
-            return error("MyriadcoinMiner : generated block is stale");
+            return error("SpectrumcoinMiner : generated block is stale");
 
         // Remove key from key pool
         reservekey.KeepKey();
@@ -4694,7 +4722,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         CValidationState state;
         if (!ProcessBlock(state, NULL, pblock))
-            return error("MyriadcoinMiner : ProcessBlock, block not accepted");
+            return error("SpectrumcoinMiner : ProcessBlock, block not accepted");
     }
 
     return true;
@@ -4979,6 +5007,136 @@ void static ScryptMiner(CWallet *pwallet)
     }
 }
 
+void static ScryptNMiner(CWallet *pwallet)
+{
+    // Each thread has its own key and counter
+    CReserveKey reservekey(pwallet);
+    unsigned int nExtraNonce = 0;
+
+    loop 
+    {       
+        MinerWaitOnline();
+
+        //
+        // Create new block
+        //
+        unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
+        CBlockIndex* pindexPrev = pindexBest;
+
+        auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(reservekey, ALGO_SCRYPTN));
+        if (!pblocktemplate.get())
+            return;
+        CBlock *pblock = &pblocktemplate->block;
+        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+
+        printf("Running ScryptN miner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
+               ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+
+        //
+        // Pre-build hash buffers
+        //
+        char pmidstatebuf[32+16]; char* pmidstate = alignup<16>(pmidstatebuf);
+        char pdatabuf[128+16];    char* pdata     = alignup<16>(pdatabuf);
+        char phash1buf[64+16];    char* phash1    = alignup<16>(phash1buf);
+
+        FormatHashBuffers(pblock, pmidstate, pdata, phash1);
+
+        unsigned int& nBlockTime = *(unsigned int*)(pdata + 64 + 4);
+        unsigned int& nBlockBits = *(unsigned int*)(pdata + 64 + 8);
+        //unsigned int& nBlockNonce = *(unsigned int*)(pdata + 64 + 12);
+
+        //
+        // Search
+        //        
+        int64 nStart = GetTime();
+        uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+        loop
+        {
+            unsigned int nHashesDone = 0;
+
+            uint256 thash;
+                        
+            unsigned int Nfactor = GetNfactor(pblock->nTime);
+            unsigned long int scrypt_scratpad_size_current_block = ((1 << (Nfactor + 1)) * 128 ) + 63;
+            char scratchpad[scrypt_scratpad_size_current_block];
+        
+            // printf("Nfactor -> %d\n", Nfactor);
+            /*printf("nTime -> %d", pblock->nTime);
+            printf("scrypt_scratpad_size_current_block -> %ld", sizeof(scrypt_scratpad_size_current_block));
+            printf("scratchpad -> %d", sizeof(scratchpad));*/
+            
+            loop
+            {
+                // Generic scrypt
+                scrypt_N_1_1_256_sp_generic(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad, Nfactor);
+
+                if (thash <= hashTarget)
+                {
+                    // Found a solution
+                    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+                    CheckWork(pblock, *pwalletMain, reservekey);
+                    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                    break;
+                }
+                pblock->nNonce += 1;
+                nHashesDone += 1;
+                if ((pblock->nNonce & 0xFF) == 0)
+                    break;
+            }
+
+            // Meter hashes/sec
+            static int64 nHashCounter;
+            if (nHPSTimerStart == 0)
+            {
+                nHPSTimerStart = GetTimeMillis();
+                nHashCounter = 0;
+            }
+            else
+                nHashCounter += nHashesDone;
+            if (GetTimeMillis() - nHPSTimerStart > 4000)
+            {
+                static CCriticalSection cs;
+                {
+                    LOCK(cs);
+                    if (GetTimeMillis() - nHPSTimerStart > 4000)
+                    {
+                        dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+                        nHPSTimerStart = GetTimeMillis();
+                        nHashCounter = 0;
+                        static int64 nLogTime;
+                        if (GetTime() - nLogTime > 30 * 60)
+                        {
+                            nLogTime = GetTime();
+                            printf("hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
+                        }
+                    }
+                }
+            }
+
+            // Check for stop or if block needs to be rebuilt
+            boost::this_thread::interruption_point();
+            if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
+                break;
+            if (pblock->nNonce >= 0xffff0000)
+                break;
+            if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                break;
+            if (pindexPrev != pindexBest)
+                break;
+                
+            // Update nTime every few seconds
+            UpdateTime(*pblock, pindexPrev);
+            nBlockTime = ByteReverse(pblock->nTime);
+            if (TestNet())
+            {
+                // Changing pblock->nTime can change work required on testnet:
+                nBlockBits = ByteReverse(pblock->nBits);
+                hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+            }
+        }
+    }    
+}
+
 void static GenericMiner(CWallet *pwallet, int algo)
 {
     // Each thread has its own key and counter
@@ -5082,7 +5240,7 @@ void static GenericMiner(CWallet *pwallet, int algo)
 
 void static ThreadBitcoinMiner(CWallet *pwallet)
 {
-    printf("Myriadcoin miner started\n");
+    printf("Spectrumcoin miner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("bitcoin-miner");
     
@@ -5096,20 +5254,16 @@ void static ThreadBitcoinMiner(CWallet *pwallet)
             case ALGO_SCRYPT:
                 ScryptMiner(pwallet);
                 break;
-            case ALGO_GROESTL:
-                GenericMiner(pwallet, ALGO_GROESTL);
+            case ALGO_SCRYPTN:
+                ScryptNMiner(pwallet);
                 break;
-            case ALGO_SKEIN:
-                GenericMiner(pwallet, ALGO_SKEIN);
-                break;
-            case ALGO_QUBIT:
-                GenericMiner(pwallet, ALGO_QUBIT);
-                break;
+            default:
+                GenericMiner(pwallet, miningAlgo);
         }
     }
     catch (boost::thread_interrupted)
     {
-        printf("Myriadcoin miner terminated\n");
+        printf("Spectrumcoin miner terminated\n");
         throw;
     }
 }

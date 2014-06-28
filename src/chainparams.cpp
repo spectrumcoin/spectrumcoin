@@ -23,61 +23,74 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         // The message start string is designed to be unlikely to occur in normal data.
-        pchMessageStart[0] = 0xaf;
-        pchMessageStart[1] = 0x45;
-        pchMessageStart[2] = 0x76;
-        pchMessageStart[3] = 0xee;
-        vAlertPubKey = ParseHex("04a82e43bebee0af77bb6d4f830c5b2095b7479a480e91bbbf3547fb261c5e6d1be2c27e3c57503f501480f5027371ec62b2be1b6f00fc746e4b3777259e7f6a78");
-        nDefaultPort = 10888;
-        nRPCPort = 10889;
-        bnProofOfWorkLimit[ALGO_SHA256D] = CBigNum(~uint256(0) >> 20);
-        bnProofOfWorkLimit[ALGO_SCRYPT]  = CBigNum(~uint256(0) >> 20);
-        bnProofOfWorkLimit[ALGO_GROESTL] = CBigNum(~uint256(0) >> 20);
-        bnProofOfWorkLimit[ALGO_SKEIN]   = CBigNum(~uint256(0) >> 20);
-        bnProofOfWorkLimit[ALGO_QUBIT]   = CBigNum(~uint256(0) >> 20);
-        nSubsidyHalvingInterval = 80640 * 12;
+        pchMessageStart[0] = 0x13;
+        pchMessageStart[1] = 0xff;
+        pchMessageStart[2] = 0x98;
+        pchMessageStart[3] = 0x01;
+        vAlertPubKey = ParseHex("0480a759cdc99d76706cc0da5a32b30e70bdf1b568981f481f73fb09ea5b1213cf141688bc78bfe8e7d1532d0c1e1bb0f772b8c6bd84d483c75cc12e602015f6c0");
+        nDefaultPort = 10678;
+        nRPCPort = 10680;
+        bnProofOfWorkLimit[ALGO_SHA256D]  = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_SCRYPT]   = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_GROESTL]  = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_SKEIN]    = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_QUBIT]    = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_X11]      = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_QUARK]    = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_GROESTL2] = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_BLAKE256] = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_X13]      = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_SCRYPTN]  = CBigNum(~uint256(0) >> 20);
+        bnProofOfWorkLimit[ALGO_KECCAK]   = CBigNum(~uint256(0) >> 20);
+        nSubsidyHalvingInterval = 524160 / 6; // 2 months @ 1 minute blocks
 
         // Build the genesis block. Note that the output of the genesis coinbase cannot
         // be spent as it did not originally exist in the database.
   
-        const char* pszTimestamp = "2014-02-23 FT - G20 aims to add $2tn to global economy";
+        const char* pszTimestamp = "20140628-Guardian-Britain closer to EU exit";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 1000 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04e941763c7750969e751bee1ffbe96a651a0feb131db046546c219ea40bff40b95077dc9ba1c05af991588772d8daabbda57386c068fb9bc7477c5e28702d5eb9") << OP_CHECKSIG;
+        txNew.vout[0].nValue = nMinSubsidy;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("0461265581c3e32fbd14a1ec74a840ba312a8106be2a3992964d807ad33825735a02e3ee7438579c76cbb1d470326acf7fa4bf876251f4595ecacffab0a02cd79c") << OP_CHECKSIG;
         genesis.vtx.push_back(txNew);
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = BLOCK_VERSION_DEFAULT;
-        genesis.nTime    = 1393164995;
+        genesis.nTime    = nGenesisTime;
         genesis.nBits    = 0x1e0fffff;
-        genesis.nNonce   = 2092903596;
+        genesis.nNonce   = 2095476325;
         
         //// debug print
         hashGenesisBlock = genesis.GetHash();
-        //while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
-        //    if (++genesis.nNonce==0) break;
-        //    hashGenesisBlock = genesis.GetHash();
-        //}
+        /*
+        while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
+            if (++genesis.nNonce==0) break;
+            hashGenesisBlock = genesis.GetHash();
+        }
 
-        //printf("MAIN: %s\n", hashGenesisBlock.ToString().c_str());
-        //printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
-        //printf("%x\n", bnProofOfWorkLimit[ALGO_SHA256D].GetCompact());
-        //genesis.print();
+        printf("MAIN: %s\n", hashGenesisBlock.ToString().c_str());
+        printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
+        printf("%x\n", bnProofOfWorkLimit[ALGO_SHA256D].GetCompact());
+        genesis.print();
+        */
         
-        assert(hashGenesisBlock == uint256("0x00000ffde4c020b5938441a0ea3d314bf619eff0b38f32f78f7583cffa1ea485"));
-        assert(genesis.hashMerkleRoot == uint256("0x3f75db3c18e92f46c21530dc1222e1fddf4ccebbf88e289a6c9dc787fd6469da"));
+        assert(hashGenesisBlock == uint256("0x000005b29ea428d2fe73103832897e3124ae11fd5e1774fce28273a9b11dc663"));
+        assert(genesis.hashMerkleRoot == uint256("0x858ffa2bcb471c3ed676034236eb749ecf46e660cc27cae3d14e25128089b5a9"));
 
-        vSeeds.push_back(CDNSSeedData("seed1.myriadcoin.org", "seed1.myriadcoin.org"));
-        vSeeds.push_back(CDNSSeedData("seed2.myriadcoin.org", "seed2.myriadcoin.org"));
-        vSeeds.push_back(CDNSSeedData("seed3.myriadcoin.org", "seed3.myriadcoin.org"));
-        vSeeds.push_back(CDNSSeedData("seed4.myriadcoin.org", "seed4.myriadcoin.org"));
+        vSeeds.push_back(CDNSSeedData("seed1.spectrumcoin.net", "seed1.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed2.spectrumcoin.net", "seed2.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed3.spectrumcoin.net", "seed3.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed4.spectrumcoin.net", "seed4.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed5.spectrumcoin.net", "seed5.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed6.spectrumcoin.net", "seed6.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed7.spectrumcoin.net", "seed7.spectrumcoin.net"));
+        vSeeds.push_back(CDNSSeedData("seed8.spectrumcoin.net", "seed8.spectrumcoin.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = 50;
-        base58Prefixes[SCRIPT_ADDRESS] = 9;
-        base58Prefixes[SECRET_KEY] = 178;
+        base58Prefixes[PUBKEY_ADDRESS] = 63;
+        base58Prefixes[SCRIPT_ADDRESS] = 8;
+        base58Prefixes[SECRET_KEY] = 190;
 
         // Convert the pnSeeds array into usable address objects.
         for (unsigned int i = 0; i < ARRAYLEN(pnSeed); i++)
@@ -114,39 +127,41 @@ class CTestNetParams : public CMainParams {
 public:
     CTestNetParams() {
         // The message start string is designed to be unlikely to occur in normal data.
-        pchMessageStart[0] = 0x01;
-        pchMessageStart[1] = 0xf5;
-        pchMessageStart[2] = 0x55;
-        pchMessageStart[3] = 0xa4;
-        vAlertPubKey = ParseHex("044adf046e6bc86fb83ef92f261fa3feff9176bd029c5ad4afb5c52ac21f9851f2b2eb861cdbf2c09e0cb97dbf75c6ca5ff6c5df88cfb244c72dba1d44b5a47655");
-        nDefaultPort = 20888;
-        nRPCPort = 20889;
+        pchMessageStart[0] = 0x02;
+        pchMessageStart[1] = 0xf1;
+        pchMessageStart[2] = 0xa3;
+        pchMessageStart[3] = 0x09;
+        vAlertPubKey = ParseHex("04fb693f9cb6ed5e4fee81cd49f4317b5fdab6ba0ec6a9770fde76a9fd5a3344a6646d09acb1782852a8a2f43233a2e2a1d4136b5d9e7d3567c39fa0dfe17cabba");
+        nDefaultPort = 20678;
+        nRPCPort = 20680;
         strDataDir = "testnet";
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1392876393;
-        genesis.nNonce = 416875379;
+        genesis.nTime = 1403049000;
+        genesis.nNonce = 419614808;
         
         //// debug print
         hashGenesisBlock = genesis.GetHash();
-        //while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
-        //    if (++genesis.nNonce==0) break;
-        //   hashGenesisBlock = genesis.GetHash();
-        //}
+        /*
+        while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
+            if (++genesis.nNonce==0) break;
+           hashGenesisBlock = genesis.GetHash();
+        }
 
-        //printf("TEST: %s\n", hashGenesisBlock.ToString().c_str());
-        //printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
-        //genesis.print();
+        printf("TEST: %s\n", hashGenesisBlock.ToString().c_str());
+        printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
+        genesis.print();
+        */
         
-        assert(hashGenesisBlock == uint256("0x0000017ce2a79c8bddafbbe47c004aa92b20678c354b34085f62b762084b9788"));
+        assert(hashGenesisBlock == uint256("0x000002265ed77512ddd79046b196aa7c33d0ead690902bf3dbce83f75a6ceee9"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("testseed1.myriadcoin.org", "testseed1.myriadcoin.org"));
+        vSeeds.push_back(CDNSSeedData("testseed1.spectrumcoin.net", "testseed1.spectrumcoin.net"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = 88;
-        base58Prefixes[SCRIPT_ADDRESS] = 188;
-        base58Prefixes[SECRET_KEY] = 239;
+        base58Prefixes[PUBKEY_ADDRESS] = 31;
+        base58Prefixes[SCRIPT_ADDRESS] = 141;
+        base58Prefixes[SECRET_KEY] = 159;
 
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
@@ -165,12 +180,19 @@ public:
         pchMessageStart[2] = 0xa5;
         pchMessageStart[3] = 0x5a;
         nSubsidyHalvingInterval = 150;
-        bnProofOfWorkLimit[ALGO_SHA256D] = CBigNum(~uint256(0) >> 1);
-        bnProofOfWorkLimit[ALGO_SCRYPT]  = CBigNum(~uint256(0) >> 1);
-        bnProofOfWorkLimit[ALGO_GROESTL] = CBigNum(~uint256(0) >> 1);
-        bnProofOfWorkLimit[ALGO_SKEIN]   = CBigNum(~uint256(0) >> 1);
-        bnProofOfWorkLimit[ALGO_QUBIT]   = CBigNum(~uint256(0) >> 1);
-        genesis.nTime = 1296688602;
+        bnProofOfWorkLimit[ALGO_SHA256D]  = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_SCRYPT]   = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_GROESTL]  = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_SKEIN]    = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_QUBIT]    = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_X11]      = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_QUARK]    = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_GROESTL2] = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_BLAKE256] = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_X13]      = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_SCRYPTN]  = CBigNum(~uint256(0) >> 1);
+        bnProofOfWorkLimit[ALGO_KECCAK]   = CBigNum(~uint256(0) >> 1);
+        genesis.nTime = 1403049001;
         genesis.nBits = 0x207fffff;
         genesis.nNonce = 4;
         hashGenesisBlock = genesis.GetHash();
@@ -179,16 +201,18 @@ public:
         
         //// debug print
         hashGenesisBlock = genesis.GetHash();
-        //while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
-        //    if (++genesis.nNonce==0) break;
-        //    hashGenesisBlock = genesis.GetHash();
-        //}
+        /*
+        while (hashGenesisBlock > bnProofOfWorkLimit[ALGO_SHA256D].getuint256()){
+            if (++genesis.nNonce==0) break;
+            hashGenesisBlock = genesis.GetHash();
+        }
 
-        //printf("REG: %s\n", hashGenesisBlock.ToString().c_str());
-        //printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
-        //genesis.print();
+        printf("REG: %s\n", hashGenesisBlock.ToString().c_str());
+        printf("%s\n", genesis.hashMerkleRoot.ToString().c_str());
+        genesis.print();
+        */
 
-        assert(hashGenesisBlock == uint256("0x63b92987ddc93808aa33dddc80b3e52948bdfffaf2420bf4cd9c5137b54ea37c"));
+        assert(hashGenesisBlock == uint256("0x28164384ba58b31bdad300e5f606bca098551dfd2774af82b037559790c33abf"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
 

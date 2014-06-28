@@ -44,10 +44,18 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 /** Fake height value used in CCoins to signify they are only in the memory pool (since 0.8) */
 static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
 /** No amount larger than this (in satoshi) is valid */
-static const int64 MAX_MONEY = 2000000000 * COIN;
+// Year 1:
+// 87,360 x 100  = 8,736,000
+// 87,360 x 50   = 4,368,000
+// 87,360 x 25   = 2,184,000
+// 87,360 x 12   = 1,092,000
+// 87,360 x 6.25 x 2 = 1,092,000
+// ==== 17,472,000
+// Year 2+ 524160 x 6.25 = 3,276,000
+static const int64 MAX_MONEY = 60000000 * COIN; // 17,472,000 (year 1) + 3,276,000 pa forever
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
-static const int COINBASE_MATURITY = 100;
+static const int COINBASE_MATURITY = 180;
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 /** Maximum number of script-checking threads allowed */
@@ -687,7 +695,7 @@ enum BlockStatus {
     BLOCK_FAILED_MASK        =   96
 };
 
-const int64 nBlockAlgoWorkWeightStart = 142000; // block where algo work weighting starts
+// const int64 nBlockAlgoWorkWeightStart = 142000; // block where algo work weighting starts
 
 /** The block chain is a tree shaped structure starting with the
  * genesis block at the root, with each block potentially having multiple
@@ -830,10 +838,6 @@ public:
 
     int GetAlgoWorkFactor() const 
     {
-        if (!TestNet() && (nHeight < nBlockAlgoWorkWeightStart))
-        {
-            return 1;
-        }
         if (TestNet() && (nHeight < 100))
         {
             return 1;
@@ -851,16 +855,53 @@ public:
                 return 4 * 6;
             case ALGO_QUBIT:
                 return 128 * 8;
+            case ALGO_X11:
+                return 160 * 6;
+            case ALGO_QUARK:
+                return 128 * 6;
+            case ALGO_GROESTL2:
+                return 64 * 8;
+            case ALGO_X13:
+                return 180 * 6;
             default:
                 return 1;
         }
     }
-
+    
+    CBigNum GetPrevWorkForAlgo(int algo) const
+    {
+        CBigNum nWork;
+        CBlockIndex* pindex = this->pprev;
+        while (pindex)
+        {
+            if (pindex->GetAlgo() == algo)
+            {
+                return pindex->GetBlockWork();
+            }
+            pindex = pindex->pprev;
+        }
+        return Params().ProofOfWorkLimit(algo);
+    }
+    
     CBigNum GetBlockWorkAdjusted() const
     {
-        CBigNum bnRes;
-        bnRes = GetBlockWork() * GetAlgoWorkFactor();
-        return bnRes;
+        // CBigNum bnRes;
+        // bnRes = GetBlockWork() * GetAlgoWorkFactor();
+        // return bnRes;
+        
+        // Adjusted block work is the sum of work of this block and the 
+        // most recent work of one block of each algo
+        CBigNum nBlockWork = GetBlockWork();
+        int nAlgo = GetAlgo();
+        for (int algo = 0; algo < NUM_ALGOS; algo++)
+        {
+            if (algo != nAlgo)
+            {
+                nBlockWork += GetPrevWorkForAlgo(algo);
+            }
+        }
+        nBlockWork /= NUM_ALGOS;
+        return nBlockWork;
     }
     
     bool IsInMainChain() const

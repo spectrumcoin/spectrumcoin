@@ -12,28 +12,56 @@
 #include "hashgroestl.h"
 #include "hashskein.h"
 #include "hashqubit.h"
+#include "hashx11.h"
+#include "hashquark.h"
+#include "hashblake256.h"
+#include "hashx13.h"
+#include "scryptn.h"
+#include "hashkeccak.h"
 
 #include <stdio.h>
 
+const int64 nGenesisTime = 1403950603;
+
+static const int64 nStartSubsidy = 100 * COIN;
+static const int64 nMinSubsidy = 6.25 * COIN;
+
 enum { 
-    ALGO_SHA256D = 0, 
-    ALGO_SCRYPT  = 1, 
-    ALGO_GROESTL = 2,
-    ALGO_SKEIN   = 3,
-    ALGO_QUBIT   = 4,
+    ALGO_SHA256D  = 0, 
+    ALGO_SCRYPT   = 1, 
+    ALGO_GROESTL  = 2,
+    ALGO_SKEIN    = 3,
+    ALGO_QUBIT    = 4,
+    ALGO_X11      = 5,
+    ALGO_QUARK    = 6,
+    ALGO_GROESTL2 = 7,
+    ALGO_BLAKE256 = 8,
+    ALGO_X13      = 9,
+    ALGO_SCRYPTN  = 10,
+    ALGO_KECCAK   = 11,
     NUM_ALGOS };
 
 enum
 {
     // primary version
     BLOCK_VERSION_DEFAULT        = 2,
+    
+    // modifiers
+    BLOCK_VERSION_AUXPOW         = (1 << 8),
 
     // algo
-    BLOCK_VERSION_ALGO           = (7 << 9),
+    BLOCK_VERSION_ALGO           = (15 << 9),
     BLOCK_VERSION_SCRYPT         = (1 << 9),
     BLOCK_VERSION_GROESTL        = (2 << 9),
     BLOCK_VERSION_SKEIN          = (3 << 9),
     BLOCK_VERSION_QUBIT          = (4 << 9),
+    BLOCK_VERSION_X11            = (5 << 9),
+    BLOCK_VERSION_QUARK          = (6 << 9),
+    BLOCK_VERSION_GROESTL2       = (7 << 9),
+    BLOCK_VERSION_BLAKE256       = (8 << 9),
+    BLOCK_VERSION_X13            = (9 << 9),
+    BLOCK_VERSION_SCRYPTN        = (10 << 9),
+    BLOCK_VERSION_KECCAK         = (11 << 9),
 };
 
 inline int GetAlgo(int nVersion)
@@ -50,6 +78,20 @@ inline int GetAlgo(int nVersion)
             return ALGO_SKEIN;
         case BLOCK_VERSION_QUBIT:
             return ALGO_QUBIT;
+        case BLOCK_VERSION_X11:
+            return ALGO_X11;
+        case BLOCK_VERSION_QUARK:
+            return ALGO_QUARK;
+        case BLOCK_VERSION_GROESTL2:
+            return ALGO_GROESTL2;
+        case BLOCK_VERSION_BLAKE256:
+            return ALGO_BLAKE256;
+        case BLOCK_VERSION_X13:
+            return ALGO_X13;
+        case BLOCK_VERSION_SCRYPTN:
+            return ALGO_SCRYPTN;
+        case BLOCK_VERSION_KECCAK:
+            return ALGO_KECCAK;
     }
     return ALGO_SHA256D;
 }
@@ -68,6 +110,20 @@ inline std::string GetAlgoName(int Algo)
             return std::string("skein");
         case ALGO_QUBIT:
             return std::string("qubit");
+        case ALGO_X11:
+            return std::string("x11");
+        case ALGO_QUARK:
+            return std::string("quark");
+        case ALGO_GROESTL2:
+            return std::string("groestl2");
+        case ALGO_BLAKE256:
+            return std::string("blake256");
+        case ALGO_X13:
+            return std::string("x13");
+        case ALGO_SCRYPTN:
+            return std::string("scryptn");
+        case ALGO_KECCAK:
+            return std::string("keccak");
     }
     return std::string("unknown");       
 }
@@ -595,6 +651,9 @@ public:
 };
 
 
+unsigned int GetNfactor(int64 nTimestamp);
+
+
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
  * requirements.  When they solve the proof-of-work, they broadcast the block
@@ -665,11 +724,30 @@ public:
                 return thash;
             }
             case ALGO_GROESTL:
-                return HashGroestl(BEGIN(nVersion), END(nNonce));
+                return HashMyriadGroestl(BEGIN(nVersion), END(nNonce));
             case ALGO_SKEIN:
                 return HashSkein(BEGIN(nVersion), END(nNonce));
             case ALGO_QUBIT:
                 return HashQubit(BEGIN(nVersion), END(nNonce));
+            case ALGO_X11:
+                return HashX11(BEGIN(nVersion), END(nNonce));
+            case ALGO_QUARK:
+                return Hash9(BEGIN(nVersion), END(nNonce));
+            case ALGO_GROESTL2:
+                return HashGroestl2(BEGIN(nVersion), END(nNonce));
+            case ALGO_BLAKE256:
+                return HashBlake256(BEGIN(nVersion), END(nNonce));
+            case ALGO_X13:
+                return HashX13(BEGIN(nVersion), END(nNonce));
+            case ALGO_SCRYPTN:
+            {
+                uint256 thash;
+                // Caution: scrypt_N_1_1_256 assumes fixed length of 80 bytes
+                scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(thash), GetNfactor(nTime));
+                return thash;
+            }
+            case ALGO_KECCAK:
+                return HashKeccak(BEGIN(nVersion), END(nNonce));
         }
         return GetHash();
     }
@@ -738,5 +816,6 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     void print() const;
 };
+
 
 #endif

@@ -1,6 +1,6 @@
 TEMPLATE = app
-TARGET = myriadcoin-qt
-macx:TARGET = "Myriadcoin-Qt"
+TARGET = spectrumcoin-qt
+macx:TARGET = "Spectrumcoin-Qt"
 VERSION = 0.8.2
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
@@ -44,7 +44,7 @@ contains(RELEASE, 1) {
     # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
 }
 # for extra security (see: https://wiki.debian.org/Hardening): this flag is GCC compiler-specific
-QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2 -march=native
+QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 # on Windows: enable GCC large address aware linker flag
@@ -229,9 +229,16 @@ HEADERS += src/qt/bitcoingui.h \
     src/sph_simd.h \
     src/sph_cubehash.h \
     src/sph_shavite.h \
+    src/sph_blake256.h \
     src/hashgroestl.h \
     src/hashskein.h \
-    src/hashqubit.h
+    src/hashqubit.h \
+    src/hashx11.h \
+    src/hashquark.h \
+    src/hashblake256.h \
+    src/hashx13.h \
+    src/scryptn.h \
+    src/hashkeccak.h
 
 SOURCES += src/qt/bitcoin.cpp \
     src/qt/bitcoingui.cpp \
@@ -316,7 +323,13 @@ SOURCES += src/qt/bitcoin.cpp \
     src/luffa.c \
     src/simd.c \
     src/cubehash.c \
-    src/shavite.c
+    src/shavite.c \
+    src/blake256.c \
+    src/hamsi.c \
+    src/hamsi_helper.c \
+    src/fugue.c \
+    src/scryptn.cpp \
+    src/scryptn-sse2.cpp
 
 RESOURCES += src/qt/bitcoin.qrc
 
@@ -345,7 +358,7 @@ SOURCES += src/qt/test/test_main.cpp \
 HEADERS += src/qt/test/uritests.h
 DEPENDPATH += src/qt/test
 QT += testlib
-TARGET = myriadcoin-qt_test
+TARGET = spectrumcoin-qt_test
 DEFINES += BITCOIN_QT_TEST
   macx: CONFIG -= app_bundle
 }

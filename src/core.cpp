@@ -300,3 +300,23 @@ void CBlock::print() const
         printf("%s ", vMerkleTree[i].ToString().c_str());
     printf("\n");
 }
+
+// spectrumcoin: increasing Nfactor every two years
+
+const unsigned char minNfactor = 11;
+const unsigned char maxNfactor = 16;
+
+unsigned int GetNfactor(int64 nTimestamp) 
+{
+    if (nTimestamp <= nGenesisTime)
+        return minNfactor;
+
+    int64 s = nTimestamp - nGenesisTime;
+    s /= (2 * 365 * 24 * 60 * 60);
+
+    unsigned int n = minNfactor + s;
+    if (n > maxNfactor)
+        n = maxNfactor;
+    
+    return n;
+}
